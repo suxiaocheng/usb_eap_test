@@ -1,0 +1,38 @@
+﻿/*****************************************************************/
+*                        Usb Bulk Test Program
+* Version = V1.0
+* Author: Huang Zhijian
+* date: 2017/12/22
+/*****************************************************************/
+
+说明：
+	这是一个USB Bulk测试程序，用来测试IAP2，EAP，printer能否正常读写
+
+测试的程序包括：
+1、PC端的USB host驱动程序：
+	IAP2驱动、EAP驱动
+2、应用层的测试程序：
+	PC端：host bulk的测试程序（usb_host_bulk_test）
+	车机端：device bulk测试程序（usb_device_bulk_test）
+
+使用说明：
+1、需要编译单独PC端的驱动：
+	cd svapi/usb_test/usb_bulk/host_machine/driver
+	make
+
+2、PC Ubuntu加载驱动
+	sudo insmod usb_eap.ko             /* 加载USB host端的EAP驱动  */
+	sudo insmod usb_iap2.ko            /* 加载USB host端的IAP2驱动 */
+
+4、车机端usb配置为device模式：
+	echo peripheral > /sys/devices/platform/soc/ee080200.usb-phy/role     /* 把usb设置成device模式 */
+
+5、运行应用程式就可以测试了
+例如：
+	PC端：sudo ./usb_host_bulk_test iap write
+	车机端：./usb_device_bulk_test iap read
+	若能正常读写，可以看到PC端每秒发送的数据到车机，每秒收到车机端发送的数据。
+
+注意：
+1、编译USB host驱动时不能在运行了G6S的环境变量的终端下，否则会报错。
+2、PC端加载驱动和运行应用的时候，注意权限问题，要加sudo。

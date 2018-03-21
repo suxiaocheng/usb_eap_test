@@ -1,0 +1,1 @@
+cmd_/work3/usb_bulk/host_machine/driver/usb_eap/usb_eap.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /work3/usb_bulk/host_machine/driver/usb_eap/usb_eap.ko /work3/usb_bulk/host_machine/driver/usb_eap/usb_eap.o /work3/usb_bulk/host_machine/driver/usb_eap/usb_eap.mod.o
