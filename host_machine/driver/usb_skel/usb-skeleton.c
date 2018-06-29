@@ -487,6 +487,52 @@ static struct usb_class_driver skel_class = {
 	.minor_base =	USB_SKEL_MINOR_BASE,
 };
 
+static int usbeap_get_endpoints(struct usb_skel *dev, struct usb_interface *intf)
+{
+	int				tmp;
+	struct usb_host_interface	*alt = NULL;
+	struct usb_host_endpoint	*in = NULL, *out = NULL;
+
+	for (tmp = 0; tmp < intf->num_altsetting; tmp++) {
+		unsigned	ep;
+
+		in = out  = NULL;
+		alt = intf->altsetting + tmp;
+
+		/* take the first altsetting with in-bulk + out-bulk;
+		 * remember any status endpoint, just in case;
+		 * ignore other endpoints and altsettings.
+		 */
+		for (ep = 0; ep < alt->desc.bNumEndpoints; ep++) {
+			struct usb_host_endpoint	*e;
+
+			e = alt->endpoint + ep;
+			if (usb_endpoint_dir_in(&e->desc)) {
+				if (!in) {
+					in = e;
+				}
+			} else {
+				if (!out) {
+					out = e;
+				}
+			}
+		}
+		if (in && out)
+		break;
+	}
+	if (!alt || !in || !out)
+		return -EINVAL;
+
+	if (alt->desc.bAlternateSetting != 0) {
+		tmp = usb_set_interface (dev->udev, alt->desc.bInterfaceNumber,
+				alt->desc.bAlternateSetting);
+		if (tmp < 0)
+			return tmp;
+	}
+
+	return 0;
+}
+
 static int skel_probe(struct usb_interface *interface,
 		      const struct usb_device_id *id)
 {
@@ -513,6 +559,9 @@ static int skel_probe(struct usb_interface *interface,
 	init_waitqueue_head(&dev->bulk_in_wait);
 
 	dev->udev = usb_get_dev(interface_to_usbdev(interface));
+
+	usbeap_get_endpoints(dev, interface);
+
 	dev->interface = interface;
 
 	/* set up the endpoint information */
